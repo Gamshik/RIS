@@ -1,0 +1,395 @@
+// #include <iostream>
+// #include <vector>
+// #include <fstream>
+// #include <string>
+// #include <cmath>
+// #include <chrono>
+// #include <atomic>
+// #include <iomanip>
+// #include <array>
+// #include <windows.h>
+
+// using namespace std;
+
+// const double EPSILON = 1e-9;
+// const double PI = 3.14159265358979323846;
+
+// struct Point3D {
+//     double x, y, z;
+// };
+
+// using Vector3D = Point3D;
+
+// struct TrapezoidResult {
+//     array<Point3D, 4> vertices;
+//     double area;
+//     array<double, 4> angles;
+// };
+
+// struct ThreadData {
+//     const vector<Point3D>* points;
+//     vector<TrapezoidResult>* shared_results;
+//     atomic<bool>* ready_flags;
+//     int thread_id;
+//     int num_threads;
+// };
+
+
+// Vector3D operator-(const Point3D& a, const Point3D& b) {
+//     return {a.x - b.x, a.y - b.y, a.z - b.z};
+// }
+
+// double dot_product(const Vector3D& v1, const Vector3D& v2) {
+//     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+// }
+
+// Vector3D cross_product(const Vector3D& v1, const Vector3D& v2) {
+//     return {
+//         v1.y * v2.z - v1.z * v2.y,
+//         v1.z * v2.x - v1.x * v2.z,
+//         v1.x * v2.y - v1.y * v2.x
+//     };
+// }
+
+// double magnitude(const Vector3D& v) {
+//     return sqrt(dot_product(v, v));
+// }
+
+// bool are_parallel(const Vector3D& v1, const Vector3D& v2) {
+//     return magnitude(cross_product(v1, v2)) < EPSILON;
+// }
+
+// double clamp(double v, double lo = -1.0, double hi = 1.0) {
+//     if (v < lo) return lo;
+//     if (v > hi) return hi;
+//     return v;
+// }
+
+// double calculate_angle(const Point3D& p_prev, const Point3D& p_curr, const Point3D& p_next) {
+//     Vector3D v1 = p_prev - p_curr;
+//     Vector3D v2 = p_next - p_curr;
+//     double dot = dot_product(v1, v2);
+//     double mag1 = magnitude(v1);
+//     double mag2 = magnitude(v2);
+//     if (mag1 < EPSILON || mag2 < EPSILON) return 0.0;
+//     double cosv = dot / (mag1 * mag2);
+//     cosv = clamp(cosv, -1.0, 1.0);
+//     return acos(cosv) * 180.0 / PI;
+// }
+
+// bool are_coplanar(const Point3D& p1, const Point3D& p2, const Point3D& p3, const Point3D& p4) {
+//     Vector3D v1 = p2 - p1;
+//     Vector3D v2 = p3 - p1;
+//     Vector3D v3 = p4 - p1;
+//     double triple = dot_product(v1, cross_product(v2, v3));
+//     double scale = magnitude(v1) * magnitude(cross_product(v2, v3));
+//     if (scale < EPSILON) return true;
+//     return fabs(triple) <= 1e-9 * scale;
+// }
+
+
+// void generate_data_file(const string& filename, int n) {
+//     ofstream file(filename);
+//     if (!file) {
+//         cerr << "Error: Could not create file " << filename << endl;
+//         return;
+//     }
+
+//     srand(time(nullptr)); 
+
+//     for (int i = 0; i < n; ++i) {
+//         double x = (rand() % 20001 - 10000) / 100.0;
+//         double y = (rand() % 20001 - 10000) / 100.0;
+//         double z = 0.0; 
+
+//         file << x << " " << y << " " << z << "\n";
+//     }
+
+//     cout << "Generated file '" << filename << "' with " << n << " points" << endl;
+// }
+
+// vector<Point3D> read_points_from_file(const string& filename) {
+//     ifstream file(filename);
+//     if (!file) {
+//         cerr << "Error: Could not open file " << filename << endl;
+//         return {};
+//     }
+
+//     vector<Point3D> points;
+//     Point3D p;
+//     while (file >> p.x >> p.y >> p.z) {
+//         points.push_back(p);
+//     }
+//     return points;
+// }
+
+// void write_results_to_file(const string& filename, const vector<TrapezoidResult>& results) {
+//     ofstream file(filename);
+//     if (!file) {
+//         cerr << "Error: Could not create file to write results " << filename << endl;
+//         return;
+//     }
+
+//     file << fixed << setprecision(4);
+//     for (const auto& res : results) {
+//         file << "Vertices: ";
+//         for (const auto& v : res.vertices) {
+//             file << "{" << v.x << ", " << v.y << ", " << v.z << "} ";
+//         }
+//         file << "\nAngles: ";
+//         for (const auto& angle : res.angles) {
+//             file << angle << "° ";
+//         }
+//         file << "\nArea: " << res.area << "\n\n";
+//     }
+// }
+
+// void process_combination(const array<Point3D, 4>& points, vector<TrapezoidResult>& local_results) {
+//     const Point3D& p1 = points[0];
+//     const Point3D& p2 = points[1];
+//     const Point3D& p3 = points[2];
+//     const Point3D& p4 = points[3];
+    
+//     if (!are_coplanar(p1, p2, p3, p4)) {
+//         return;
+//     }
+
+//     Vector3D v12 = p2 - p1;
+//     Vector3D v34 = p4 - p3;
+//     Vector3D v13 = p3 - p1;
+//     Vector3D v24 = p4 - p2;
+//     Vector3D v14 = p4 - p1;
+//     Vector3D v23 = p3 - p2;
+
+//     array<Point3D, 4> ordered_vertices;
+//     bool is_trapezoid = false;
+
+//     if (are_parallel(v12, v34)) {
+//         if (magnitude(v13) > EPSILON && magnitude(v24) > EPSILON) {
+//             ordered_vertices = {p1, p2, p4, p3};
+//             is_trapezoid = true;
+//         }
+//     }
+//     else if (are_parallel(v13, v24)) {
+//          if (magnitude(v12) > EPSILON && magnitude(v34) > EPSILON) {
+//             ordered_vertices = {p1, p3, p4, p2};
+//             is_trapezoid = true;
+//         }
+//     }
+//     else if (are_parallel(v14, v23)) {
+//          if (magnitude(v12) > EPSILON && magnitude(v34) > EPSILON) {
+//             ordered_vertices = {p1, p4, p3, p2};
+//             is_trapezoid = true;
+//         }
+//     }
+    
+//     if (is_trapezoid) {
+//         TrapezoidResult res;
+//         res.vertices = ordered_vertices;
+
+//         Vector3D d1 = ordered_vertices[2] - ordered_vertices[0];
+//         Vector3D d2 = ordered_vertices[1] - ordered_vertices[0];
+//         Vector3D d3 = ordered_vertices[3] - ordered_vertices[0];
+//         double area1 = 0.5 * magnitude(cross_product(d2, d1));
+//         double area2 = 0.5 * magnitude(cross_product(d1, d3));
+//         res.area = area1 + area2;
+        
+//         res.angles[0] = calculate_angle(ordered_vertices[3], ordered_vertices[0], ordered_vertices[1]);
+//         res.angles[1] = calculate_angle(ordered_vertices[0], ordered_vertices[1], ordered_vertices[2]);
+//         res.angles[2] = calculate_angle(ordered_vertices[1], ordered_vertices[2], ordered_vertices[3]);
+//         res.angles[3] = calculate_angle(ordered_vertices[2], ordered_vertices[3], ordered_vertices[0]);
+        
+//         double angle_sum = res.angles[0] + res.angles[1] + res.angles[2] + res.angles[3];
+//         if (res.area > EPSILON && abs(angle_sum - 360.0) < 1.0) {
+//             local_results.push_back(res);
+//         }
+//     }
+// }
+
+// void run_single_threaded(const vector<Point3D>& points) {
+//     auto start = chrono::high_resolution_clock::now();
+    
+//     vector<TrapezoidResult> results;
+//     size_t n = points.size();
+
+//     for (size_t i = 0; i < n; ++i) {
+//         for (size_t j = i + 1; j < n; ++j) {
+//             for (size_t k = j + 1; k < n; ++k) {
+//                 for (size_t l = k + 1; l < n; ++l) {
+//                     process_combination({points[i], points[j], points[k], points[l]}, results);
+//                 }
+//             }
+//         }
+//     }
+
+//     auto end = chrono::high_resolution_clock::now();
+//     chrono::duration<double> duration = end - start;
+
+//     write_results_to_file("single_thread", results);
+    
+//     cout << "Trapezoids found: " << results.size() << endl;
+//     cout << "Execution time: " << duration.count() << " seconds" << endl;
+// }
+
+// DWORD WINAPI worker_with_flags(LPVOID lpParam) {
+//     ThreadData* data = (ThreadData*)lpParam;
+//     const vector<Point3D>& points = *data->points;
+//     vector<TrapezoidResult>& shared_results = *data->shared_results;
+//     atomic<bool>* ready_flags = data->ready_flags;
+//     int thread_id = data->thread_id;
+//     int num_threads = data->num_threads;
+//     int n = (int)points.size();
+
+//     for (int i = thread_id; i < n - 3; i += num_threads) {
+//         vector<TrapezoidResult> local_results;
+
+//         for (int j = i + 1; j < n - 2; ++j)
+//             for (int k = j + 1; k < n - 1; ++k)
+//                 for (int l = k + 1; l < n; ++l)
+//                     process_combination({points[i], points[j], points[k], points[l]}, local_results);
+
+//         ready_flags[thread_id].store(true);
+//         for (int other = 0; other < num_threads; ++other) {
+//             if (other == thread_id) continue;
+//             while (ready_flags[other].load()) {
+//                 Sleep(1); 
+//             }
+//         }
+
+//         shared_results.insert(shared_results.end(), local_results.begin(), local_results.end());
+
+//         ready_flags[thread_id].store(false);
+//     }
+
+//     return 0;
+// }
+
+// void run_multi_thread(const vector<Point3D>& points, int num_threads) {
+//     auto start = chrono::high_resolution_clock::now();
+
+//     vector<TrapezoidResult> shared_results;
+//     vector<HANDLE> threads(num_threads);
+//     vector<ThreadData> thread_data(num_threads);
+//     vector<atomic<bool>> ready_flags(num_threads);
+
+//     for (int i = 0; i < num_threads; ++i) ready_flags[i].store(false);
+
+//     for (int i = 0; i < num_threads; ++i) {
+//         thread_data[i].points = &points;
+//         thread_data[i].shared_results = &shared_results;
+//         thread_data[i].ready_flags = ready_flags.data();
+//         thread_data[i].thread_id = i;
+//         thread_data[i].num_threads = num_threads;
+
+//         threads[i] = CreateThread(
+//             nullptr,
+//             0,
+//             worker_with_flags,
+//             &thread_data[i],
+//             0,
+//             nullptr
+//         );
+//     }
+
+//     WaitForMultipleObjects(num_threads, threads.data(), TRUE, INFINITE);
+
+//     for (int i = 0; i < num_threads; ++i) CloseHandle(threads[i]);
+
+//     auto end = chrono::high_resolution_clock::now();
+//     chrono::duration<double> duration = end - start;
+
+//     write_results_to_file("multi_thread", shared_results);
+//     cout << "Trapezoids found: " << shared_results.size() << "\n";
+//     cout << "Execution time: " << duration.count() << " seconds\n";
+// }
+
+// int main() {
+//     const string filename = "points";
+
+//     int N_POINTS = 0;
+
+//     while (N_POINTS <= 0) {
+//         cout << "Enter number of points to generate: ";
+//         cin >> N_POINTS;
+//         if (N_POINTS <= 0) {
+//             cout << "Number of points must be positive. Try again." << endl;
+//         }
+//     }
+
+//     generate_data_file(filename, N_POINTS);
+
+//     vector<Point3D> points = read_points_from_file(filename);
+//     if (points.empty()) return 1;
+
+//     int choice = 0;
+//     while (choice != 3) {
+//         cout << "\nSelect threads mode:" << endl;
+//         cout << "1. Single-thread" << endl;
+//         cout << "2. Multi-thread" << endl;
+//         cout << "3. Exit" << endl;
+//         cin >> choice;
+
+//         switch (choice) {
+//             case 1:
+//                 run_single_threaded(points);
+//                 break;
+//             case 2: {
+//                 int num_threads = 0;
+//                 while (num_threads < 1 || num_threads > 4) {
+//                     cout << "Enter number of threads (1-4): ";
+//                     cin >> num_threads;
+//                 }
+
+//                 run_multi_thread(points, num_threads);
+//                 break;
+//             }
+//             default:
+//                 cout << "Invalid choice. Please try again." << endl;
+//         }
+//     }
+//     return 0;
+// }
+
+
+#include "point3d.h"
+#include "math_utils.h"
+#include "file_utils.h"
+#include "thread_utils.h"
+#include <iostream>
+#include <vector>
+
+int main() {
+    const std::string filename = "points";
+
+    int N_POINTS = 0;
+    while(N_POINTS <= 0) {
+        std::cout << "Enter number of points: ";
+        std::cin >> N_POINTS;
+    }
+
+    generate_data_file(filename, N_POINTS);
+    std::vector<Point3D> points = read_points_from_file(filename);
+    if(points.empty()) return 1;
+
+    int choice = 0;
+    while(choice != 3) {
+        std::cout << "\nSelect mode:\n1. Single-thread\n2. Multi-thread\n3. Exit\n";
+        std::cin >> choice;
+
+        switch(choice) {
+            case 1: run_single_threaded(points); break;
+            case 2: {
+                int num_threads = 0;
+                while(num_threads<1||num_threads>4) {
+                    std::cout << "Enter number of threads (1-4): ";
+                    std::cin >> num_threads;
+                }
+                run_multi_thread(points,num_threads);
+                break;
+            }
+            default: std::cout << "Invalid choice\n";
+        }
+    }
+
+    return 0;
+}
