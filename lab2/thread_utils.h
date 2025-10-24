@@ -1,8 +1,13 @@
 #pragma once
+#define WIN32_LEAN_AND_MEAN
+#include <cstddef>   
+#ifdef byte
+#undef byte
+#endif
+#include <windows.h>
 #include "point3d.h"
 #include <vector>
 #include <atomic>
-#include <windows.h>
 
 using namespace std;
 

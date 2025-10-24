@@ -46,7 +46,8 @@ void run_single_threaded(const vector<Point3D>& points) {
             for (size_t k = j + 1; k < n; ++k)
                 for (size_t l = k + 1; l < n; ++l)
                     process_combination({points[i], points[j], points[k], points[l]}, results);
-        
+            
+
     auto end = chrono::high_resolution_clock::now();
     chrono::duration<double> duration = end - start;
 
@@ -92,6 +93,7 @@ void run_multi_thread(const vector<Point3D>& points, int num_threads) {
     chrono::duration<double> duration = end - start;
 
     write_results_to_file("multi_thread", shared_results);
+    
     cout << "Trapezoids found: " << shared_results.size() << "\n";
     cout << "Execution time: " << duration.count() << " seconds\n";
 }
