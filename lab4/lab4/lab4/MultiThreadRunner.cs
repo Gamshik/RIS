@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Threading;
 
 namespace lab4
 {
@@ -9,6 +10,8 @@ namespace lab4
         private Semaphore _semaphore;
         private int _threadCount;
         private int _completedTasks = 0;
+        private object lockObject = new object();
+
 
         public MultiThreadRunner()
         {
@@ -46,23 +49,32 @@ namespace lab4
             {
                 TaskInfo task = null;
 
-                _semaphore.WaitOne();
-                try
+                //_semaphore.WaitOne();
+                //try
+                //{
+                //    if (_taskQueue.Count == 0)
+                //    {
+                //        break;
+                //    }
+                //    task = _taskQueue.Dequeue();
+                //}
+                //finally
+                //{
+                //    _semaphore.Release();
+                //}
+
+                lock (lockObject)
                 {
                     if (_taskQueue.Count == 0)
-                    {
                         break;
-                    }
+
                     task = _taskQueue.Dequeue();
-                }
-                finally
-                {
-                    _semaphore.Release();
                 }
 
                 if (task == null)
                     break;
 
+                _semaphore.WaitOne();
 
                 try
                 {
@@ -77,14 +89,19 @@ namespace lab4
 
                     MatrixHelper.WriteVectorToCsv(task.ResultFile, x);
 
-                    _semaphore.WaitOne();
-                    try
+                    //_semaphore.WaitOne();
+                    //try
+                    //{
+                    //    _completedTasks++;
+                    //}
+                    //finally
+                    //{
+                    //    _semaphore.Release();
+                    //}
+
+                    lock (lockObject)
                     {
                         _completedTasks++;
-                    }
-                    finally
-                    {
-                        _semaphore.Release();
                     }
 
                     taskTimer.Stop();
@@ -94,6 +111,10 @@ namespace lab4
                 catch (Exception ex)
                 {
                     Console.WriteLine($"[Поток #{threadId}] Ошибка в {task.MatrixAFile}: {ex.Message}");
+                }
+                finally
+                {
+                    _semaphore.Release();
                 }
             }
         }
@@ -106,7 +127,9 @@ namespace lab4
 
             _completedTasks = 0;
 
-            _semaphore = new Semaphore(1, 1);
+            //_semaphore = new Semaphore(1, 1);
+
+            _semaphore = new Semaphore(_threadCount, _threadCount);
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 

@@ -1,0 +1,5 @@
+Consumer.exe single
+Producer.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab5\Images" single
+
+Consumer.exe multi
+Producer.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab5\Images" multi
