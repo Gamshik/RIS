@@ -1,0 +1,17 @@
+Generator.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data"
+
+SolverSingleThread.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data"
+
+Solver.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data"
+
+RootMPI.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data" 1
+
+mpiexec -n 4 RootMPI.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data"
+
+g++ -o main .\main.cpp
+
+main.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data"
+
+mpiexec -n 4 main.exe "D:\ProgrammingAndProjects\Studies\7sem\RIS\lab8\Data"   
+
+g++ main.cpp -o main.exe -I"C:\Program Files (x86)\Microsoft SDKs\MPI\Include" -L"C:\Program Files (x86)\Microsoft SDKs\MPI\Lib\x64" -lmsmpi
