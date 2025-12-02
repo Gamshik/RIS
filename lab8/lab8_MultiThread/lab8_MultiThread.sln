@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36301.6 d17.14
+VisualStudioVersion = 17.14.36301.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RootMPI", "RootMPI\RootMPI.csproj", "{7B73D6CC-7A15-4ED6-9863-F5547F65A1DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GaussThreads", "GaussThreads\GaussThreads.csproj", "{08D684C6-77F7-458E-9284-3F09C518124A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7B73D6CC-7A15-4ED6-9863-F5547F65A1DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B73D6CC-7A15-4ED6-9863-F5547F65A1DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B73D6CC-7A15-4ED6-9863-F5547F65A1DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D684C6-77F7-458E-9284-3F09C518124A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D684C6-77F7-458E-9284-3F09C518124A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D684C6-77F7-458E-9284-3F09C518124A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D684C6-77F7-458E-9284-3F09C518124A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

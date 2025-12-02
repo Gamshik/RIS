@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 
 class Program
@@ -26,9 +27,9 @@ class Program
         double[,] A;
         double[] B;
 
-        Stopwatch time = Stopwatch.StartNew();
         ReadMatrix(fileA, fileB, out A, out B);
 
+        Stopwatch time = Stopwatch.StartNew();
         int N = B.Length;
 
         double[] X = GaussianElimination(A, B, N);
@@ -41,8 +42,10 @@ class Program
 
         time.Stop();
 
-        Console.WriteLine($"Размер матрицы: {N}x{N}");
-        Console.WriteLine($"Время: {time.ElapsedMilliseconds} мс");
+        Console.WriteLine("==============================================");
+        Console.WriteLine($"  Размер матрицы: {N}x{N}");
+        Console.WriteLine($"  Время: {time.ElapsedMilliseconds:F3} мс");
+        Console.WriteLine("==============================================");
     }
 
     static void ReadMatrix(string fileA, string fileB, out double[,] A, out double[] B)

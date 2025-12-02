@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <chrono>
 #include <locale>
+#include <vector>
 
 using namespace std;
 
@@ -21,34 +22,54 @@ void logToFile(const wstring& message) {
     logFile.close();
 }
 
-void ReadMatrix(const string& path, double** &A, int &N) {
+void ReadMatrix(const std::string& path, double**& A, int& N)
+{
     ifstream fin(path);
-    if (!fin.is_open()) throw runtime_error("Не удалось открыть файл " + path);
+    if (!fin) throw std::runtime_error("Cannot open " + path);
 
     string line;
-    N = 0;
-    while (getline(fin, line)) if (!line.empty()) N++;
-    fin.clear();
-    fin.seekg(0, ios::beg);
+    vector<vector<double>> rows;
+
+    while (std::getline(fin, line))
+    {
+        istringstream ss(line);
+        vector<double> row;
+        double v;
+
+        while (ss >> v) row.push_back(v);
+
+        if (!row.empty())
+            rows.push_back(std::move(row));
+    }
+
+    N = (int)rows.size();
+    if (N == 0) throw std::runtime_error("Matrix file is empty");
+
+    for (int i = 0; i < N; i++)
+        if ((int)rows[i].size() != N)
+            throw std::runtime_error("Matrix is not square");
 
     A = new double*[N];
-    for (int i = 0; i < N; i++) A[i] = new double[N];
+    for (int i = 0; i < N; i++)
+        A[i] = new double[N];
 
-    int i = 0;
-    while (getline(fin, line)) {
-        if (line.empty()) continue;
-        stringstream ss(line);
-        for (int j = 0; j < N; j++) ss >> A[i][j];
-        i++;
-    }
+    
+    for (int i = 0; i < N; i++)
+        for (int j = 0; j < N; j++)
+            A[i][j] = rows[i][j];
 }
 
-void ReadVector(const string& path, double* &B, int N) {
-    ifstream fin(path);
-    if (!fin.is_open()) throw runtime_error("Не удалось открыть файл " + path);
+void ReadVector(const std::string& path, double*& B, int N)
+{
+    std::ifstream fin(path);
+    if (!fin) throw std::runtime_error("Cannot open " + path);
+
     B = new double[N];
-    for (int i = 0; i < N; i++) fin >> B[i];
+    for (int i = 0; i < N; i++)
+        if (!(fin >> B[i]))
+            throw std::runtime_error("Vector file does not match matrix size");
 }
+
 
 void WriteVector(const string& path, double* X, int N) {
     ofstream fout(path);
