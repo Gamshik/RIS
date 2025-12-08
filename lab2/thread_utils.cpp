@@ -14,7 +14,7 @@ DWORD WINAPI worker_with_flags(LPVOID lpParam) {
     int thread_id = data->thread_id;
     int num_threads = data->num_threads;
     int n = (int)points.size();
-
+    
     for (int i = thread_id; i < n-3; i += num_threads) {
         vector<TrapezoidResult> local_results;
         for (int j = i+1; j<n-2; ++j)
